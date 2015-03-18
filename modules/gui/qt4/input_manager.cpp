@@ -89,6 +89,7 @@ InputManager::InputManager( QObject *parent, intf_thread_t *_p_intf) :
     b_video      = false;
     timeA        = 0;
     timeB        = 0;
+    b_repeat_sentence = false;
     f_cache      = -1.; /* impossible initial value, different from all */
     registerAndCheckEventIds( IMEvent::PositionUpdate, IMEvent::FullscreenControlPlanHide );
     registerAndCheckEventIds( PLEvent::PLItemAppended, PLEvent::PLEmpty );
@@ -304,6 +305,11 @@ void InputManager::customEvent( QEvent *event )
     case IMEvent::EPGEvent:
         UpdateEPG();
         break;
+    case IMEvent::DefaultSubLoaded:
+        // update the subtitle navigation buttons
+        // if default subtitle loaded
+        updateSubtitleStatus();
+        break;
     default:
         msg_Warn( p_intf, "This shouldn't happen: %i", i_type );
         vlc_assert_unreachable();
@@ -415,6 +421,10 @@ static int InputEvent( vlc_object_t *p_this, const char *,
     case INPUT_EVENT_ITEM_EPG:
         /* EPG data changed */
         event = new IMEvent( IMEvent::EPGEvent );
+        break;
+
+    case INPUT_EVENT_DEFAULT_SUBTITLE_LOADED:
+        event = new IMEvent ( IMEvent::DefaultSubLoaded);
         break;
 
     case INPUT_EVENT_SIGNAL:
@@ -811,6 +821,21 @@ void InputManager::sliderUpdate( float new_pos )
 {
     if( hasInput() )
         var_SetFloat( p_input, "position", new_pos );
+
+    if (b_repeat_sentence)
+        repeatCurSentence(); // Repeat the sentence in new position
+    else if (timeA>0 && timeB>0)
+    {
+        // Disable AtoB if user updates the slider
+        timeA = 0;
+        timeB = 0;
+        disconnect( this, SIGNAL( positionUpdated( float, int64_t, int ) ),
+                    this, SLOT( AtoBLoop( float, int64_t, int ) ) );
+
+        emit AtoBchanged (false,false);
+    }
+
+
     emit seekRequested( new_pos );
 }
 
@@ -950,6 +975,99 @@ void InputManager::setRate( int new_rate )
                  (float)INPUT_RATE_DEFAULT / (float)new_rate );
 }
 
+/*
+ * Post the event of the subtitle status change (new subtitle added)
+ */
+void InputManager::updateSubtitleStatus()
+{
+    emit subtitleStatusChanged( hasSubtitle());
+}
+
+/*
+ * Jump to the next sentence based on subtitle data
+ */
+void InputManager::jumpNextSentence()
+{
+    if( hasInput() )
+    {
+        mtime_t tm_start, tm_end;
+        if( !input_Control( p_input, INPUT_GET_NEXT_SENTENCE_TIME, &tm_start, &tm_end ) )
+        {
+            var_SetTime( p_input, "time", tm_start);
+            if (b_repeat_sentence) repeatCurSentence();
+        }
+    }
+
+    return;
+}
+
+/*
+ * Jump to the previous sentence based on subtitle data
+ */
+void InputManager::jumpPreviousSentence()
+{
+    if( hasInput() )
+    {
+        mtime_t tm_start, tm_end;
+        if( !input_Control( p_input, INPUT_GET_PREV_SENTENCE_TIME, &tm_start, &tm_end ) )
+        {
+            var_SetTime( p_input, "time", tm_start);
+            if (b_repeat_sentence) repeatCurSentence();
+        }
+    }
+
+    return;
+}
+
+/*
+ * Toggle the status to repeat/not repeat sentences
+ */
+void InputManager::toggleRepeatSentence()
+{
+    b_repeat_sentence = !b_repeat_sentence;
+
+    if (b_repeat_sentence)
+    {
+        repeatCurSentence();
+        emit AtoBchanged( false,false );
+    }
+    else
+    {
+        // disable AtoB
+        timeA = 0;
+        timeB = 0;
+        disconnect( this, SIGNAL( positionUpdated( float, int64_t, int ) ),
+                    this, SLOT( AtoBLoop( float, int64_t, int ) ) );
+    }
+
+    emit repeatSentenceChanged( b_repeat_sentence );
+
+}
+
+/*
+ * Repeat the current sentence by setting up AtoB, based on subtitle data
+ */
+void InputManager::repeatCurSentence()
+{
+    if( hasInput() )
+    {
+        mtime_t tm_start, tm_end;
+        if( !input_Control( p_input, INPUT_GET_CUR_SENTENCE_TIME, &tm_start, &tm_end ) )
+        {
+            var_SetTime( p_input, "time", tm_start);
+
+            // set up AtoB to repeat the sentence
+            timeA = tm_start;
+            timeB = tm_end;
+
+            CONNECT( this, positionUpdated( float, int64_t, int ),
+                     this, AtoBLoop( float, int64_t, int ) );
+        }
+    }
+
+    return;
+}
+
 void InputManager::jumpFwd()
 {
     int i_interval = var_InheritInteger( p_input, "short-jump-size" );
@@ -972,6 +1090,9 @@ void InputManager::jumpBwd()
 
 void InputManager::setAtoB()
 {
+    if (b_repeat_sentence)
+        toggleRepeatSentence(); //disable sentence repeat first
+
     if( !timeA )
     {
         timeA = var_GetTime( THEMIM->getInput(), "time"  );

@@ -55,10 +55,20 @@ void ActionsManager::doAction( int id_action )
             THEMIM->prev(); break;
         case NEXT_ACTION:
             THEMIM->next(); break;
+        case PREVIOUS_SENTENCE_ACTION:
+            THEMIM->getIM()->jumpPreviousSentence(); break;
+        case NEXT_SENTENCE_ACTION:
+            THEMIM->getIM()->jumpNextSentence(); break;
+        case REPEAT_SENTENCE_ACTION:
+            THEMIM->getIM()->toggleRepeatSentence(); break;
         case SLOWER_ACTION:
             THEMIM->getIM()->slower(); break;
         case FASTER_ACTION:
             THEMIM->getIM()->faster(); break;
+        case SLOWER_FINE_ACTION:
+            THEMIM->getIM()->littleslower(); break;
+        case FASTER_FINE_ACTION:
+            THEMIM->getIM()->littlefaster(); break;
         case FULLSCREEN_ACTION:
             fullscreen(); break;
         case EXTENDED_ACTION:

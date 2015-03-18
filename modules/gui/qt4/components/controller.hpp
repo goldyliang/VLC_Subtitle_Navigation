@@ -81,6 +81,11 @@ typedef enum buttonType_e
     NEXT_BUTTON,
     OPEN_SUB_BUTTON,
     FULLWIDTH_BUTTON,
+    PREVIOUS_SENTENCE_BUTTON,
+    NEXT_SENTENCE_BUTTON,
+    REPEAT_SENTENCE_BUTTON,
+    SLOWER_FINE_BUTTON,
+    FASTER_FINE_BUTTON,
     BUTTON_MAX,
 
     SPLITTER = 0x20,
@@ -104,15 +109,18 @@ typedef enum buttonType_e
 } buttonType_e;
 
 
-static const char* const nameL[BUTTON_MAX] = { N_("Play"), N_("Stop"), N_("Open"),
-    N_("Previous / Backward"), N_("Next / Forward"), N_("Slower"), N_("Faster"), N_("Fullscreen"),
+static const char* const nameL[BUTTON_MAX] = { N_("Play"), //N_("Next sentence"),
+		N_("Stop"), N_("Open"),
+    N_("Previous / Backward"), N_("Next / Forward"), N_("Slower"), N_("Faster"),N_("Fullscreen"),
     N_("De-Fullscreen"), N_("Extended panel"), N_("Playlist"), N_("Snapshot"),
     N_("Record"), N_("A->B Loop"), N_("Frame By Frame"), N_("Trickplay Reverse"),
     N_("Step backward" ), N_("Step forward"), N_("Quit"), N_("Random"),
     N_("Loop / Repeat"), N_("Information"), N_("Previous"), N_("Next"),
-    N_("Open subtitles"), N_("Dock fullscreen controller")
+    N_("Open subtitles"), N_("Dock fullscreen controller"),
+    N_("Previous Sentence"), N_("Next Sentence"), N_("Toggle Repeat Sentence"),
+    N_("Slower (fine)"), N_("Faster (fine)")
 };
-static const char* const tooltipL[BUTTON_MAX] = { I_PLAY_TOOLTIP,
+static const char* const tooltipL[BUTTON_MAX] = { I_PLAY_TOOLTIP, //N_("Jump next sentence"),
     N_("Stop playback"), N_("Open a medium"),
     N_("Previous media in the playlist, skip backward when held"),
     N_("Next media in the playlist, skip forward when held"), N_("Slower"), N_("Faster"),
@@ -124,9 +132,12 @@ static const char* const tooltipL[BUTTON_MAX] = { I_PLAY_TOOLTIP,
     N_("Random"), N_("Change the loop and repeat modes"), N_("Information"),
     N_("Previous media in the playlist"), N_("Next media in the playlist"),
     N_("Open subtitle file"),
-    N_("Dock/undock fullscreen controller to/from bottom of screen")
+    N_("Dock/undock fullscreen controller to/from bottom of screen"),
+    N_("Jump to previous sentence"), N_("Jump to next sentence"), N_("Repeat each sentence continuously.\nClick to turn on"),
+    N_("Slower (fine)"), N_("Faster (fine)")
 };
-static const QString iconL[BUTTON_MAX] ={ ":/toolbar/play_b", ":/toolbar/stop_b",
+static const QString iconL[BUTTON_MAX] ={ ":/toolbar/play_b", //":/toolbar/play_b",
+		":/toolbar/stop_b",
     ":/toolbar/eject", ":/toolbar/previous_b", ":/toolbar/next_b",
     ":/toolbar/slower", ":/toolbar/faster", ":/toolbar/fullscreen",
     ":/toolbar/defullscreen", ":/toolbar/extended", ":/toolbar/playlist",
@@ -134,7 +145,10 @@ static const QString iconL[BUTTON_MAX] ={ ":/toolbar/play_b", ":/toolbar/stop_b"
     ":/toolbar/frame", ":/toolbar/reverse", ":/toolbar/skip_back",
     ":/toolbar/skip_fw", ":/toolbar/clear", ":/buttons/playlist/shuffle_on",
     ":/buttons/playlist/repeat_all", ":/menu/info",
-    ":/toolbar/previous_b", ":/toolbar/next_b", ":/toolbar/eject", ":/toolbar/space"
+    ":/toolbar/previous_b", ":/toolbar/next_b",
+	":/toolbar/eject", ":/toolbar/space",
+    ":/toolbar/previous_sen", ":/toolbar/next_sen", ":/toolbar/repeat_sen",
+	":/slower2",":/faster2"
 };
 
 enum
@@ -181,6 +195,7 @@ protected slots:
 
 signals:
     void inputExists( bool ); /// This might be useful in the IM ?
+    void subtitleExists (bool);
     void inputPlaying( bool ); /// This might be useful in the IM ?
     void inputIsRecordable( bool ); /// same ?
     void inputIsTrickPlayable( bool ); /// same ?

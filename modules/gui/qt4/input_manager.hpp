@@ -69,6 +69,7 @@ public:
         RandomChanged,
         LoopOrRepeatChanged,
         EPGEvent,
+        DefaultSubLoaded,
     /*    SignalChanged, */
 
         FullscreenControlToggle = QEvent::User + IMEventTypeOffset + 20,
@@ -136,6 +137,17 @@ public:
             && !p_input->b_dead /* not dead yet, */
             && !p_input->b_eof  /* not EOF either */;
     }
+    bool hasSubtitle()
+    {
+        bool b;
+        if (!p_input) return false;
+
+        if( !input_Control( p_input, INPUT_GET_SUBTITLE_SEEKABLE, &b) )
+             return b;
+        else return false;
+    }
+
+    void updateSubtitleStatus();
 
     int playingStatus();
     bool hasAudio();
@@ -160,6 +172,7 @@ private:
     float           f_cache;
     bool            b_video;
     mtime_t         timeA, timeB;
+    bool            b_repeat_sentence;
 
     void customEvent( QEvent * );
 
@@ -183,6 +196,7 @@ private:
     void UpdateRecord();
     void UpdateProgramEvent();
     void UpdateEPG();
+    void repeatCurSentence();
 
     void setInput( input_thread_t * );
 
@@ -200,6 +214,10 @@ public slots:
     /* Jumping */
     void jumpFwd();
     void jumpBwd();
+    void jumpNextSentence();
+    void jumpPreviousSentence();
+    void toggleRepeatSentence();
+
     /* Menus */
     void sectionNext();
     void sectionPrev();
@@ -236,6 +254,8 @@ signals:
     /// Play/pause status
     void playingStatusChanged( int );
     void recordingStateChanged( bool );
+    /// Subtitle exist status
+    void subtitleStatusChanged ( bool );
     /// Teletext
     void teletextPossible( bool );
     void teletextActivated( bool );
@@ -243,6 +263,7 @@ signals:
     void newTelexPageSet( int );
     /// Advanced buttons
     void AtoBchanged( bool, bool );
+    void repeatSentenceChanged (bool);
     /// Vout
     void voutChanged( bool );
     void voutListChanged( vout_thread_t **pp_vout, int i_vout );

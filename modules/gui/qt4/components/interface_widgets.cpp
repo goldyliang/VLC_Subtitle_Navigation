@@ -570,6 +570,20 @@ SpeedControlWidget::SpeedControlWidget( intf_thread_t *_p_i, QWidget *_parent )
     fasterButton->setIcon( QIcon( iconL[FASTER_BUTTON] ) );
     CONNECT( fasterButton, clicked(), THEMIM->getIM(), faster() );
 
+    QToolButton *slower_fineButton = new QToolButton( this );
+    slowerButton->setMaximumSize( QSize( 26, 16 ) );
+    slowerButton->setAutoRaise( true );
+    slowerButton->setToolTip( tooltipL[SLOWER_FINE_BUTTON] );
+    slowerButton->setIcon( QIcon( iconL[SLOWER_FINE_BUTTON] ) );
+    CONNECT( slower_fineButton, clicked(), THEMIM->getIM(), littleslower() );
+
+    QToolButton *faster_fineButton = new QToolButton( this );
+    fasterButton->setMaximumSize( QSize( 26, 16 ) );
+    fasterButton->setAutoRaise( true );
+    fasterButton->setToolTip( tooltipL[FASTER_FINE_BUTTON] );
+    fasterButton->setIcon( QIcon( iconL[FASTER_FINE_BUTTON] ) );
+    CONNECT( faster_fineButton, clicked(), THEMIM->getIM(), littlefaster() );
+
 /*    spinBox = new QDoubleSpinBox();
     spinBox->setDecimals( 2 );
     spinBox->setMaximum( 32 );

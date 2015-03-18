@@ -249,6 +249,21 @@ void AtoB_Button::updateButtonIcons( bool timeA, bool timeB )
     }
 }
 
+void RepeatSentence_Button::updateButtonIcons( bool b_repeat )
+{
+    if( b_repeat)
+    {
+        setIcon( QIcon( ":/toolbar/repeat_sen_on" ) );
+        setToolTip( qtr( "Click to turn off sentence repeat function."));
+    }
+    else
+    {
+        setIcon( QIcon( ":/toolbar/repeat_sen" ) );
+        setToolTip( qtr( "Repeat each sentence continuously.\nClick to turn on" ) );
+    }
+}
+
+
 void LoopButton::updateButtonIcons( int value )
 {
     setChecked( value != NORMAL );

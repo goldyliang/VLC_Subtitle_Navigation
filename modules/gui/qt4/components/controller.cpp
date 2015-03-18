@@ -84,6 +84,11 @@ void AbstractController::setStatus( int status )
     /* Activate the interface buttons according to the presence of the input */
     emit inputExists( b_hasInput );
 
+    /* Activate/deactivate the subtitle navigation
+     * buttons.
+     */
+    THEMIM->getIM()->updateSubtitleStatus();
+
     emit inputPlaying( status == PLAYING_S );
 
     emit inputIsRecordable( b_hasInput &&
@@ -221,6 +226,10 @@ void AbstractController::createAndAddWidget( QBoxLayout *controlLayout_,
     CONNECT( this, inputExists( bool ), a, setEnabled( bool ) ); \
     a->setEnabled( THEMIM->getIM()->hasInput() ); /* TODO: is this necessary? when input is started before the interface? */
 
+#define ENABLE_ON_SUBTITLE( a ) \
+    CONNECT( THEMIM->getIM(), subtitleStatusChanged( bool ), a, setEnabled( bool ) ); \
+    a->setEnabled( THEMIM->getIM()->hasSubtitle() ); /* TODO: is this necessary? when input is started before the interface? */
+
 #define NORMAL_BUTTON( name )                           \
     QToolButton * name ## Button = new QToolButton;     \
     setupButton( name ## Button );                      \
@@ -269,6 +278,28 @@ QWidget *AbstractController::createWidget( buttonType_e button, int options )
         NORMAL_BUTTON( NEXT );
         }
         break;
+    case PREVIOUS_SENTENCE_BUTTON: {
+        NORMAL_BUTTON( PREVIOUS_SENTENCE );
+        ENABLE_ON_SUBTITLE( PREVIOUS_SENTENCEButton );
+        }
+        break;
+    case NEXT_SENTENCE_BUTTON: {
+        NORMAL_BUTTON( NEXT_SENTENCE );
+        ENABLE_ON_SUBTITLE( NEXT_SENTENCEButton );
+        }
+        break;
+    case REPEAT_SENTENCE_BUTTON: {
+        RepeatSentence_Button *RepSenButton = new RepeatSentence_Button;
+        setupButton( RepSenButton );
+        RepSenButton->setShortcut( qtr("Shift+R") );
+        BUTTON_SET_BAR( RepSenButton );
+        ENABLE_ON_SUBTITLE( RepSenButton );
+        CONNECT_MAP_SET( RepSenButton, REPEAT_SENTENCE_ACTION );
+        CONNECT( THEMIM->getIM(), repeatSentenceChanged( bool ),
+                RepSenButton, updateButtonIcons( bool ) );
+        widget = RepSenButton;
+        }
+        break;
     case SLOWER_BUTTON:{
         NORMAL_BUTTON( SLOWER );
         ENABLE_ON_INPUT( SLOWERButton );
@@ -277,6 +308,16 @@ QWidget *AbstractController::createWidget( buttonType_e button, int options )
     case FASTER_BUTTON:{
         NORMAL_BUTTON( FASTER );
         ENABLE_ON_INPUT( FASTERButton );
+        }
+        break;
+    case SLOWER_FINE_BUTTON:{
+        NORMAL_BUTTON( SLOWER_FINE );
+        ENABLE_ON_INPUT( SLOWER_FINEButton );
+        }
+        break;
+    case FASTER_FINE_BUTTON:{
+        NORMAL_BUTTON( FASTER_FINE );
+        ENABLE_ON_INPUT( FASTER_FINEButton );
         }
         break;
     case PREV_SLOW_BUTTON:{

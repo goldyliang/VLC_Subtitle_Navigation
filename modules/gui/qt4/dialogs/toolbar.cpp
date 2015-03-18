@@ -177,6 +177,7 @@ ToolbarEditDialog::ToolbarEditDialog( QWidget *_w, intf_thread_t *_p_intf)
         profileCombo->addItem( PROFILE_NAME_3, QString( VALUE_3 ) );
         profileCombo->addItem( PROFILE_NAME_4, QString( VALUE_4 ) );
         profileCombo->addItem( PROFILE_NAME_5, QString( VALUE_5 ) );
+        profileCombo->addItem( PROFILE_NAME_7, QString( VALUE_7 ) );
     }
     profileCombo->setCurrentIndex( -1 );
 

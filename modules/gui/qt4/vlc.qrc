@@ -40,6 +40,10 @@
         <file alias="stop_b">pixmaps/stop.png</file>
         <file alias="next_b">pixmaps/next.png</file>
         <file alias="previous_b">pixmaps/previous.png</file>
+        <file alias="next_sen">pixmaps/toolbar/next_sentence.png</file>
+        <file alias="previous_sen">pixmaps/toolbar/prev_sentence.png</file>
+        <file alias="repeat_sen">pixmaps/toolbar/repeat_sentence.png</file>
+        <file alias="repeat_sen_on">pixmaps/toolbar/repeat_sentence_on.png</file>
         <file alias="eject">pixmaps/eject.png</file>
         <file alias="fullscreen">pixmaps/toolbar/fullscreen.png</file>
         <file alias="defullscreen">pixmaps/toolbar/defullscreen.png</file>
@@ -102,6 +106,8 @@
         <file alias="search_clear">pixmaps/search_clear.png</file>
         <file alias="dropzone">pixmaps/playlist/dropzone.png</file>
         <file alias="valid">pixmaps/valid.png</file>
+        <file alias="slower2">pixmaps/slower2.png</file>
+        <file alias="faster2">pixmaps/faster2.png</file>
     </qresource>
     <qresource prefix="/prefsmenu">
         <file alias="cone_audio_64">pixmaps/prefs/spref_cone_Audio_64.png</file>

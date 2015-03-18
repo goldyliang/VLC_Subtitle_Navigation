@@ -69,6 +69,13 @@ private slots:
     void updateButtonIcons( bool, bool );
 };
 
+class RepeatSentence_Button : public QToolButton
+{
+    Q_OBJECT
+private slots:
+    void updateButtonIcons(bool);
+};
+
 class AspectRatioComboBox : public QComboBox
 {
     Q_OBJECT

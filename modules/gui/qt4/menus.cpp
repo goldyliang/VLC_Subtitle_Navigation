@@ -913,6 +913,27 @@ void VLCMenuBar::PopupMenuControlEntries( QMenu *menu, intf_thread_t *p_intf,
 #endif
     action->setData( ACTION_STATIC );
 
+    action = menu->addAction( qtr( "Jump &Next Sentence" ), THEMIM->getIM(),
+             SLOT( jumpNextSentence() ) );
+#ifndef __APPLE__ /* No icons in menus in Mac */
+    action->setIcon( QIcon( ":/toolbar/next_sen") );
+#endif
+    action->setData( ACTION_STATIC );
+
+    action = menu->addAction( qtr( "Jump &Previous Sentence" ), THEMIM->getIM(),
+             SLOT( jumpPreviousSentence() ) );
+#ifndef __APPLE__ /* No icons in menus in Mac */
+    action->setIcon( QIcon( ":/toolbar/previous_sen") );
+#endif
+    action->setData( ACTION_STATIC );
+
+    action = menu->addAction( qtr( "&Repeat Current Sentence" ), THEMIM->getIM(),
+             SLOT( toggleRepeatSentence() ) );
+#ifndef __APPLE__ /* No icons in menus in Mac */
+    action->setIcon( QIcon( ":/toolbar/repeat_sen") );
+#endif
+    action->setData( ACTION_STATIC );
+
     action = menu->addAction( qtr( I_MENU_GOTOTIME ), THEDP, SLOT( gotoTimeDialog() ), qtr( "Ctrl+T" ) );
     action->setData( ACTION_ALWAYS_ENABLED );
 
