@@ -369,6 +369,9 @@ static input_thread_t *Create( vlc_object_t *p_parent, input_item_t *p_item,
     /* No slave */
     p_input->p->i_slave = 0;
     p_input->p->slave   = NULL;
+    
+    /* No default subtitle */
+    p_input->p->p_def_sub = NULL;
 
     /* */
     if( p_resource )
@@ -2982,6 +2985,11 @@ static void input_SubtitleAdd( input_thread_t *p_input,
 
         es_out_Control( p_input->p->p_es_out_display, ES_OUT_SET_ES_DEFAULT_BY_ID, i_id );
         es_out_Control( p_input->p->p_es_out_display, ES_OUT_SET_ES_BY_ID, i_id );
+ 
+        /* set default subtitle input source and 
+         * send the notification event*/
+        p_input->p->p_def_sub = sub;
+        input_SendEventDefSubLoaded(p_input);
     }
     var_FreeList( &list, NULL );
 }

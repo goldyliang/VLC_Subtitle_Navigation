@@ -191,6 +191,13 @@ void input_SendEventCache( input_thread_t *p_input, double f_level )
     Trigger( p_input, INPUT_EVENT_CACHE );
 }
 
+/* Send a signal notifying a default subtitle loaded */
+void input_SendEventDefSubLoaded( input_thread_t *p_input )
+{
+    Trigger( p_input, INPUT_EVENT_DEFAULT_SUBTITLE_LOADED);
+}
+
+
 /* FIXME: review them because vlc_event_send might be
  * moved inside input_item* functions.
  */

@@ -129,6 +129,9 @@ struct input_thread_private_t
     int            i_slave;
     input_source_t **slave;
 
+    /* Default subtitle input source */
+    input_source_t *p_def_sub;
+
     /* Resources */
     input_resource_t *p_resource;
     input_resource_t *p_resource_private;

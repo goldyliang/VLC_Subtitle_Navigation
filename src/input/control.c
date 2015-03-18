@@ -35,6 +35,7 @@
 #include "event.h"
 #include "resource.h"
 #include "es_out.h"
+#include "demux.h"
 
 
 static void UpdateBookmarksOption( input_thread_t * );
@@ -494,6 +495,40 @@ int input_vaControl( input_thread_t *p_input, int i_query, va_list args )
             return es_out_ControlModifyPcrSystem( p_input->p->p_es_out_display, b_absolute, i_system );
         }
 
+        case INPUT_GET_CUR_SENTENCE_TIME:
+        case INPUT_GET_NEXT_SENTENCE_TIME:
+        case INPUT_GET_PREV_SENTENCE_TIME:
+        {
+           input_source_t * p_sub = p_input->p->p_def_sub;
+
+           if (!p_sub)
+               return VLC_EGENERIC;
+
+            int64_t* pstart = (int64_t*)va_arg( args, int64_t * );
+            int64_t* pend = (int64_t*)va_arg( args, int64_t * );
+
+            if (!demux_Control (p_sub->p_demux ,
+                    DEMUX_GET_SUBTITLE_CUR_SENTENCE_TIME +
+                    i_query - INPUT_GET_CUR_SENTENCE_TIME,
+                    pstart, pend))
+                return VLC_SUCCESS;
+            else
+                return VLC_EGENERIC;
+        }
+        case INPUT_GET_SUBTITLE_SEEKABLE:
+        {
+            bool * p_seekable = (bool*)va_arg( args, bool * );
+            input_source_t * p_sub = p_input->p->p_def_sub;
+
+            *p_seekable = false;
+
+            if (p_sub)
+                demux_Control (p_sub->p_demux,
+                               DEMUX_IS_SUBTITLE_SEEKABLE,
+                               p_seekable);
+
+            return VLC_SUCCESS;
+        }
         default:
             msg_Err( p_input, "unknown query in input_vaControl" );
             return VLC_EGENERIC;

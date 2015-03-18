@@ -226,6 +226,25 @@ static int Control( demux_t *, int, va_list );
 static void Fix( demux_t * );
 static char * get_language_from_filename( const char * );
 
+/*
+ * Get the subtitle sentence at a specific time
+ * @param i_subtitles total number of subtitles regarding to *subtitle
+ * @param *subtitle  pointer of array of the subtitle data
+ * @param i_time the specific time (in microsecond)
+ * @param i_subtitle return the number of subtitle sentence
+ *  -1 if before the first subtitle
+ *  0 ~ i_subtitles-1 if falls into the time
+ *      between the start of this sentence and the start of the next (or the end time)
+ * @param b_between return whether the time is between two sentence.
+ *   true if between the i_subtitle and the next one
+ *   false if not between, but falls in the time of i_subtitle.
+ */
+static void getSubtitleAtTime (int i_subtitles,
+                        subtitle_t  *subtitle,
+                        int64_t i_time,
+                        int * i_subtitle,
+                        bool * b_between);
+
 /*****************************************************************************
  * Module initializer
  *****************************************************************************/
@@ -590,6 +609,74 @@ static void Close( vlc_object_t *p_this )
     free( p_sys );
 }
 
+/*
+ * Get the subtitle sentence at a specific time
+ * @param i_subtitles total number of subtitles regarding to *subtitle
+ * @param *subtitle  pointer of array of the subtitle data
+ * @param i_time the specific time (in microsecond)
+ * @param i_subtitle return the number of subtitle sentence
+ *  -1 if before the first subtitle
+ *  0 ~ i_subtitles-1 if falls into the time
+ *      between the start of this sentence and the start of the next (or the end time)
+ * @param b_between return whether the time is between two sentence.
+ *   true if between the i_subtitle and the next one
+ *   false if not between, but falls in the time of i_subtitle.
+ */
+static void getSubtitleAtTime (int i_subtitles,
+                        subtitle_t  *subtitle,
+                        int64_t i_time,
+                        int * i_subtitle,
+                        bool * b_between)
+{
+    if (!subtitle || i_subtitles<=0)
+    {
+        *i_subtitle = -1; *b_between = false;
+        return;
+    }
+
+    // binary search
+    int ll=0, rr=i_subtitles-1;
+
+    while (ll<=rr)
+    {
+        int mm= (ll+rr) / 2;
+
+        if ( i_time < subtitle[mm].i_start)
+        {
+            // if the timestamp is before the start of the middle node
+            // continue the search in the lower half
+            rr = mm-1;
+        } else if ( mm<rr && i_time >= subtitle[mm+1].i_start)
+        {
+            // if the middle node is not the right node, and the timestamp
+            // is after the start of the node next to the middle
+            // continue the search in the higher half
+            ll = mm+1;
+
+        } else
+        {
+            // otherwise the timestamp is between
+            // the start of #mm and the start of #mm+1
+            *i_subtitle = mm;
+            *b_between = i_time > subtitle[mm].i_stop;
+            return;
+        }
+    }
+
+    if (rr<0)
+    {
+        // timestamp before the first subtitle sentence
+        *i_subtitle = -1; *b_between = true;
+    }
+    else
+    {
+        //should not be here
+        *i_subtitle = -1; *b_between = true;
+    }
+}
+
+
+
 /*****************************************************************************
  * Control:
  *****************************************************************************/
@@ -678,6 +765,78 @@ static int Control( demux_t *p_demux, int i_query, va_list args )
         case DEMUX_CAN_RECORD:
             return VLC_EGENERIC;
 
+        case DEMUX_IS_SUBTITLE_SEEKABLE:
+        {
+            bool *b = (bool*) va_arg (args, bool*);
+            *b = true;
+            return VLC_SUCCESS;
+        }
+        case DEMUX_GET_SUBTITLE_CUR_SENTENCE_TIME:
+        {
+            int64_t* pstart = (int64_t*)va_arg( args, int64_t * );
+            int64_t* pend   = (int64_t*)va_arg( args, int64_t * );
+
+            bool b;
+
+            int64_t i_time = var_GetTime( p_demux->p_input, "time" );
+            int i_subtitle;
+
+            getSubtitleAtTime (p_sys->i_subtitles,
+                    p_sys->subtitle, i_time, &i_subtitle, &b);
+            *pstart = p_sys->subtitle[i_subtitle].i_start;
+            *pend   = p_sys->subtitle[i_subtitle].i_stop;
+
+            return VLC_SUCCESS;
+        }
+
+        case DEMUX_GET_SUBTITLE_NEXT_SENTENCE_TIME:
+        {
+            int64_t* pstart = (int64_t*)va_arg( args, int64_t * );
+            int64_t* pend   = (int64_t*)va_arg( args, int64_t * );
+
+            bool b;
+
+            int64_t i_time = var_GetTime( p_demux->p_input, "time" );
+            int i_subtitle;
+
+            getSubtitleAtTime (p_sys->i_subtitles,
+                    p_sys->subtitle, i_time, &i_subtitle, &b);
+
+            if (i_subtitle < p_sys->i_subtitles - 1)
+                i_subtitle ++;
+
+            *pstart = p_sys->subtitle[i_subtitle].i_start;
+            *pend   = p_sys->subtitle[i_subtitle].i_stop;
+
+            return VLC_SUCCESS;
+        }
+
+        case DEMUX_GET_SUBTITLE_PREV_SENTENCE_TIME:
+        {
+            int64_t* pstart = (int64_t*)va_arg( args, int64_t * );
+            int64_t* pend   = (int64_t*)va_arg( args, int64_t * );
+
+            bool b;
+
+            int64_t i_time = var_GetTime( p_demux->p_input, "time" );
+            int i_subtitle;
+
+            getSubtitleAtTime (p_sys->i_subtitles,
+                    p_sys->subtitle, i_time, &i_subtitle, &b);
+
+            /* If currently between two sentence (b=true),
+             *    just jump to the "current" sentence before the break;
+             * Otherwise
+             *    jump to the sentence before
+            */
+            if (i_subtitle > 0 && !b)
+                i_subtitle --;
+
+            *pstart = p_sys->subtitle[i_subtitle].i_start;
+            *pend   = p_sys->subtitle[i_subtitle].i_stop;
+
+            return VLC_SUCCESS;
+        }
         default:
             msg_Err( p_demux, "unknown query %d in subtitle control", i_query );
             return VLC_EGENERIC;

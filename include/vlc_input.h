@@ -392,6 +392,9 @@ typedef enum input_event_type_e
     /* A vout_thread_t object has been created/deleted by *the input* */
     INPUT_EVENT_VOUT,
 
+    /* A default subtitle data has been loaded */
+    INPUT_EVENT_DEFAULT_SUBTITLE_LOADED,
+
 } input_event_type_e;
 
 /**
@@ -478,6 +481,11 @@ enum input_query_e
     /* External clock managments */
     INPUT_GET_PCR_SYSTEM,   /* arg1=mtime_t *, arg2=mtime_t *       res=can fail */
     INPUT_MODIFY_PCR_SYSTEM,/* arg1=int absolute, arg2=mtime_t      res=can fail */
+
+    INPUT_GET_CUR_SENTENCE_TIME,
+    INPUT_GET_NEXT_SENTENCE_TIME,
+    INPUT_GET_PREV_SENTENCE_TIME,
+    INPUT_GET_SUBTITLE_SEEKABLE,
 };
 
 /** @}*/

@@ -183,6 +183,12 @@ enum demux_query_e
     DEMUX_NAV_DOWN,            /* res=can fail */
     DEMUX_NAV_LEFT,            /* res=can fail */
     DEMUX_NAV_RIGHT,           /* res=can fail */
+
+    DEMUX_IS_SUBTITLE_SEEKABLE,
+    DEMUX_GET_SUBTITLE_CUR_SENTENCE_TIME,
+    DEMUX_GET_SUBTITLE_NEXT_SENTENCE_TIME,
+    DEMUX_GET_SUBTITLE_PREV_SENTENCE_TIME,
+
 };
 
 VLC_API int demux_vaControlHelper( stream_t *, int64_t i_start, int64_t i_end, int64_t i_bitrate, int i_align, int i_query, va_list args );
